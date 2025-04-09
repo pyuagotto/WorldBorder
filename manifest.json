@@ -1,0 +1,37 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "[1.21.72]World Border",
+        "description": "",
+        "uuid": "9f55e0cd-b477-134b-a27a-74bec2639b8c",
+        "version": [
+            0,
+            1,
+            0
+        ],
+        "min_engine_version": [
+            1,
+            20,
+            40
+        ]
+    },
+    "modules": [
+        {
+            "description": "GameTest module",
+            "type": "script",
+            "uuid": "a9ba5fc2-7854-5c56-b2b0-7a9170b749cd",
+            "version": [
+                0,
+                1,
+                0
+            ],
+            "entry": "scripts/index.js"
+        }
+    ],
+    "dependencies": [
+        {
+            "module_name": "@minecraft/server",
+            "version": "1.17.0"
+        }
+    ]
+}
