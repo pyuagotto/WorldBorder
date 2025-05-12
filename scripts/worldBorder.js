@@ -12,13 +12,14 @@ export class WorldBorder {
     add(origin, newDistance, time) {
         // 型チェック
         if (typeof newDistance !== "number" || typeof time !== "number" || !Number.isInteger(time)) {
-            return { status: CustomCommandStatus.Failure, message: `§c構文エラー:§a/scriptevent "worldborder:add" <distance:float> [time:int]` };
+            return { status: CustomCommandStatus.Failure, message: `構文エラー:§a/scriptevent "worldborder:add" <distance:float> [time:int]` };
         }
 
-        //引数が1つの場合
-        if(!time){
-            const nowDistance = world.getDynamicProperty("worldborderDistance");
+        const nowDistance = world.getDynamicProperty("worldborderDistance");
 
+        //引数が1つの場合
+        
+        if(!time){
             if(!Number.isNaN(newDistance)){
                 if(nowDistance !== newDistance){
                     world.setDynamicProperty("worldborderDistance", newDistance);
@@ -27,16 +28,14 @@ export class WorldBorder {
                     return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${newDistance}ブロックに設定しました` };
                 }
 
-                return { status: CustomCommandStatus.Failure, message: `§cワールドボーダーは既にその大きさのため、変更されませんでした§r` };
+                return { status: CustomCommandStatus.Failure, message: `ワールドボーダーは既にその大きさのため、変更されませんでした` };
             }
             
-            return { status: CustomCommandStatus.Failure, message: `§c構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
+            return { status: CustomCommandStatus.Failure, message: `構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
         }
         
         //引数が2つの場合
         else {
-            const nowDistance = world.getDynamicProperty("worldborderDistance");
-
             if(!Number.isNaN(newDistance) && !Number.isNaN(time)){
                 if(time >= 0){
                     if(nowDistance){
@@ -87,21 +86,21 @@ export class WorldBorder {
                                 return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${time}秒かけて${newDistance}ブロックに拡大します` };
                             }
 
-                            return { status: CustomCommandStatus.Failure, message: `§cワールドボーダーは既にその大きさのため、変更されませんでした§r` };
+                            return { status: CustomCommandStatus.Failure, message: `ワールドボーダーは既にその大きさのため、変更されませんでした` };
                         }
                     }
 
-                    return { status: CustomCommandStatus.Failure, message: `§c時間は0以上であるなくてはならないため${time}は適しません§r` };
+                    return { status: CustomCommandStatus.Failure, message: `時間は0以上でなくてはならないため${time}は適しません` };
                 }
                 
             }
 
-            return { status: CustomCommandStatus.Failure, message: `§c構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
+            return { status: CustomCommandStatus.Failure, message: `構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
         }
     }
 
     /**
-     * 
+     * @param {CustomCommandOrigin} origin
      * @param {import("@minecraft/server").Vector3} location 
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
@@ -111,7 +110,7 @@ export class WorldBorder {
     }
 
     /**
-     * 
+     * @param {CustomCommandOrigin} origin
      * @param {number} damage 
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
@@ -121,7 +120,7 @@ export class WorldBorder {
     }
 
     /**
-     * 
+     * @param {CustomCommandOrigin} origin
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
     get(origin){
@@ -132,7 +131,7 @@ export class WorldBorder {
     }
 
     /**
-     * 
+     * @param {CustomCommandOrigin} origin
      * @param {number} newDistance 
      * @param {number} time 
      * @returns 
@@ -140,12 +139,14 @@ export class WorldBorder {
     set(origin, newDistance, time) {
         // 型チェック
         if (typeof newDistance !== "number" || typeof time !== "number" || !Number.isInteger(time)) {
-            return { status: CustomCommandStatus.Failure, message: `§c構文エラー:§a/scriptevent "worldborder:add" <distance:float> [time:int]` };
+            return { status: CustomCommandStatus.Failure, message: `構文エラー:§a/scriptevent "worldborder:add" <distance:float> [time:int]` };
         }
+
+        const nowDistance = world.getDynamicProperty("worldborderDistance");
 
         //引数が1つの場合
         if(!time){
-            const nowDistance = world.getDynamicProperty("worldborderDistance");
+            
 
             if(!Number.isNaN(newDistance)){
                 if(nowDistance !== newDistance){
@@ -155,22 +156,21 @@ export class WorldBorder {
                     return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${newDistance}ブロックに設定しました` };
                 }
 
-                return { status: CustomCommandStatus.Failure, message: `§cワールドボーダーは既にその大きさのため、変更されませんでした§r` };
+                return { status: CustomCommandStatus.Failure, message: `ワールドボーダーは既にその大きさのため、変更されませんでした` };
             }
             
-            return { status: CustomCommandStatus.Failure, message: `§c構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
+            return { status: CustomCommandStatus.Failure, message: `構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
         }
         
         //引数が2つの場合
         else {
-            const nowDistance = world.getDynamicProperty("worldborderDistance");
-
             if(!Number.isNaN(newDistance) && !Number.isNaN(time)){
                 if(time >= 0){
                     if(nowDistance){
                         if(typeof(nowDistance) === "number"){
+                            let tick = time * 20;
+
                             if(newDistance < nowDistance){
-                                let tick = time * 20;
                                 const num = (nowDistance - newDistance) / tick;
     
                                 const id = system.runInterval(()=>{
@@ -193,7 +193,6 @@ export class WorldBorder {
                             }
                             
                             else if(newDistance > nowDistance){
-                                let tick = time * 20;
                                 const num = (newDistance - nowDistance) / tick;
     
                                 const id = system.runInterval(()=>{
@@ -215,16 +214,16 @@ export class WorldBorder {
                                 return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${time}秒かけて${newDistance}ブロックに拡大します` };
                             }
 
-                            return { status: CustomCommandStatus.Failure, message: `§cワールドボーダーは既にその大きさのため、変更されませんでした§r` };
+                            return { status: CustomCommandStatus.Failure, message: `ワールドボーダーは既にその大きさのため、変更されませんでした` };
                         }
                     }
 
-                    return { status: CustomCommandStatus.Failure, message: `§c時間は0以上であるなくてはならないため${time}は適しません§r` };
+                    return { status: CustomCommandStatus.Failure, message: `時間は0以上であるなくてはならないため${time}は適しません` };
                 }
                 
             }
 
-            return { status: CustomCommandStatus.Failure, message: `§c構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
+            return { status: CustomCommandStatus.Failure, message: `構文エラー:§a/scriptevent "worldborder:add" <distance:value> [time:int]` };
         }
     }
 }

@@ -1,6 +1,6 @@
 
 //@ts-check
-import { system, CustomCommandParamType, CommandPermissionLevel, CustomCommandOrigin, CustomCommandStatus, world } from "@minecraft/server";
+import { system, CustomCommandParamType, CommandPermissionLevel, CustomCommandOrigin, CustomCommandStatus } from "@minecraft/server";
 import { WorldBorder } from "./worldBorder.js";
 
 system.beforeEvents.startup.subscribe((ev) => {
