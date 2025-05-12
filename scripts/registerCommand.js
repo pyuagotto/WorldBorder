@@ -10,7 +10,7 @@ system.beforeEvents.startup.subscribe((ev) => {
      * @param {string} description 
      * @param {import("@minecraft/server").CustomCommandParameter[]} mandatoryParameters 
      * @param {import("@minecraft/server").CustomCommandParameter[]} optionalParameters 
-     * @param {(origin: CustomCommandOrigin, ...args: any[]) => { status: CustomCommandStatus, message?: string }} callback 
+     * @param {(origin: CustomCommandOrigin, ...args: any[]) => { status: CustomCommandStatus, message?: string } | undefined} callback 
      */
     const registerCommand = function(name, description, mandatoryParameters, optionalParameters, callback) {
         ev.customCommandRegistry.registerCommand(
@@ -25,23 +25,31 @@ system.beforeEvents.startup.subscribe((ev) => {
         );
     };
 
+    ev.customCommandRegistry.registerEnum(
+        "wb:[amount|buffer]",
+        [
+            "amount",
+            "buffer",
+        ]
+    )
+
     const worldBorder = new WorldBorder();
 
     registerCommand(
         "wb:worldborder_add",
-        "wb",
+        "ワールドボーダーの幅を追加します",
         [
             { name: "distance", type: CustomCommandParamType.Float },
         ],
         [
             { name: "time", type: CustomCommandParamType.Integer },
         ],
-        worldBorder.add
+        worldBorder.add.bind(worldBorder)
     );
 
     registerCommand(
         "wb:worldborder_center",
-        "wb",
+        "ワールドボーダーの中心を設定します",
         [
             { name: "position", type: CustomCommandParamType.Location },
         ],
@@ -51,9 +59,10 @@ system.beforeEvents.startup.subscribe((ev) => {
 
     registerCommand(
         "wb:worldborder_damage",
-        "wb",
+        "ワールドボーダー外のダメージを設定します",
         [
-            { name: "position", type: CustomCommandParamType.Location },
+            { name: "wb:[amount|buffer]", type: CustomCommandParamType.Enum },
+            { name: "number", type: CustomCommandParamType.Integer },
         ],
         [],
         worldBorder.damage
@@ -61,7 +70,7 @@ system.beforeEvents.startup.subscribe((ev) => {
 
     registerCommand(
         "wb:worldborder_get",
-        "wb",
+        "現在のワールドボーダーの幅を取得します",
         [],
         [],
         worldBorder.get
@@ -69,7 +78,7 @@ system.beforeEvents.startup.subscribe((ev) => {
 
     registerCommand(
         "wb:worldborder_set",
-        "wb",
+        "ワールドボーダーの幅を設定します",
         [
             { name: "distance", type: CustomCommandParamType.Float },
         ],
