@@ -87,4 +87,12 @@ system.beforeEvents.startup.subscribe((ev) => {
         ],
         worldBorder.set
     );
+
+    registerCommand(
+        "wb:setting",
+        "ワールドボーダーの設定を取得します",
+        [],
+        [],
+        worldBorder.setting
+    );
 });

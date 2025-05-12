@@ -1,7 +1,9 @@
 //@ts-check
 
-import { CustomCommandOrigin, CustomCommandStatus, system, world } from "@minecraft/server";
+import { CustomCommandOrigin, CustomCommandStatus, Player, system, world } from "@minecraft/server";
+import { ModalFormData } from "@minecraft/server-ui";
 import { setBorderStatus } from "./index.js";
+import config from "./config.js";
 
 export class WorldBorder {
     /**
@@ -29,7 +31,7 @@ export class WorldBorder {
      */
     center(origin, location){
         world.setDynamicProperty("worldborderCenter", location);
-        return { status: CustomCommandStatus.Success, message: `ワールドボーダーの中心を${location.x},${location.y},${location.z}に設定しました` };
+        return { status: CustomCommandStatus.Success, message: `ワールドボーダーの中心を${Math.floor(location.x * 100) / 100},${Math.floor(location.y * 100) / 100},${Math.floor(location.z * 100) / 100}に設定しました` };
     }
 
     /**
@@ -96,7 +98,6 @@ export class WorldBorder {
 
         let tick = time * 20;
         const num = Math.abs(newDistance - nowDistance) / tick;
-        console.warn('num', num);
         const direction = newDistance > nowDistance ? 1 : -1;
 
         const id = system.runInterval(() => {
@@ -119,5 +120,56 @@ export class WorldBorder {
 
         setBorderStatus(status);
         return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${time}秒かけて${newDistance}ブロックに${action}します` };
+    }
+
+    /**
+     * @param {CustomCommandOrigin} origin
+     * @returns {{ status: CustomCommandStatus, message?: string } | undefined}
+     */
+    setting(origin){
+        if(origin.sourceEntity instanceof Player){
+            if(config.config) return { status: CustomCommandStatus.Failure, message: "config.jsからconfigをfalseにしてください" };
+            const player = origin.sourceEntity;
+            const baseParticleId = world.getDynamicProperty("baseParticleId");
+            const expandParticleId = world.getDynamicProperty("expandParticleId");
+            const reductionParticleId = world.getDynamicProperty("reductionParticleId");
+            const particleQuantity = world.getDynamicProperty("particleQuantity");
+
+            if(typeof(baseParticleId) !== "string" || typeof(expandParticleId) !== "string" || typeof(reductionParticleId) !== "string" || typeof(particleQuantity) !== "number") return undefined;
+
+            const settingForm = new ModalFormData();
+            settingForm.title("ワールドボーダーの設定");
+            settingForm.textField("\nbaseParticleId\n", "namespace:name", { defaultValue : baseParticleId });
+            settingForm.textField("\nexpandParticleId\n", "namespace:name", { defaultValue : expandParticleId });
+            settingForm.textField("\nreductionParticleId\n", "namespace:name", { defaultValue : reductionParticleId });
+            settingForm.dropdown("\nparticleQuantity\n", ["few", "many"], { defaultValueIndex: particleQuantity, tooltip: "パーティクルの表示量を増やすと、処理が重くなる可能性があります" });
+
+            system.run(()=>{
+                settingForm.show(player).then((response) => {
+                    if(response.formValues){
+                        if (
+                            typeof response.formValues[0] === "string" &&
+                            typeof response.formValues[1] === "string" &&
+                            typeof response.formValues[2] === "string" &&
+                            typeof response.formValues[3] === "number"
+                        ) {
+                            world.setDynamicProperties({
+                                "baseParticleId": response.formValues[0],
+                                "expandParticleId": response.formValues[1],
+                                "reductionParticleId": response.formValues[2],
+                                "particleQuantity": response.formValues[3]
+                            });
+                        } else {
+                            console.warn("Invalid input: One or more values are not of type string.");
+                        }
+                    }
+                })
+            })
+            
+
+            return { status: CustomCommandStatus.Success };
+        }
+
+        return { status: CustomCommandStatus.Failure, message: "このコマンドはプレイヤーから実行する必要があります" };
     }
 }
