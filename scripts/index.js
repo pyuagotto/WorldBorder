@@ -1,12 +1,7 @@
 //@ts-check
 import { world, system } from '@minecraft/server';
-import { worldborderAdd } from "./command/worldborder/add.js";
-import { worldborderCenter } from "./command/worldborder/center.js";
-import { worldborderDamage } from "./command/worldborder/damage.js";
-import { worldborderGet } from "./command/worldborder/get.js";
-import { worldborderSet } from "./command/worldborder/set.js";
+import "./registerCommand.js";
 import config from "./config.js";
-import toJson from "./toJson.js";
 
 let borderStatus = 0;
 
@@ -26,31 +21,6 @@ export const setBorderStatus = function(status){
     return result;
 };
 let i = 0;
-system.afterEvents.scriptEventReceive.subscribe((ev)=>{
-    const { id } = ev;
-    
-    switch(id){
-        case "worldborder:add":
-            worldborderAdd(ev);
-            break;
-
-        case "worldborder:center": 
-            worldborderCenter(ev);
-            break;
-
-        case "worldborder:damage":
-            worldborderDamage(ev);
-            break;
-
-        case "worldborder:get":
-            worldborderGet(ev);
-            break;
-
-        case "worldborder:set":
-            worldborderSet(ev);
-            break;
-    }
-});
 
 system.runInterval(()=>{
     const inZonePlayerList = [];
