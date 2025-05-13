@@ -3,7 +3,6 @@ import { world, system, BlockVolume } from '@minecraft/server';
 import "./registerCommand.js";
 import config from "./config.js";
 import { ParticleInfo } from './class/ParticleInfo.js';
-import toJson from './toJson.js';
 
 /**
  * @type {1 | 0 | -1}
@@ -25,9 +24,8 @@ export const setBorderStatus = function(status){
     return result;
 };
 
-// プレイヤーの位置とボーダーの境界からの距離を計算
 /**
- * 
+ * プレイヤーの位置とボーダーの境界からの距離を計算
  * @param {import('@minecraft/server').Vector3} playerLocation 
  * @param {BlockVolume} blockVolume
  * @returns {number}
@@ -48,6 +46,9 @@ const calculateDistanceFromBorder = function(playerLocation, blockVolume) {
 };
 
 world.afterEvents.worldLoad.subscribe(() => {
+    const distance = world.getDynamicProperty("worldborderDistance");
+    if(!distance) world.setDynamicProperty("worldborderDistance", 50000000);
+
     const center = world.getDynamicProperty("worldborderCenter");
     if(!center) world.setDynamicProperty("worldborderCenter", {x: 0.5, y: -60, z: 0.5});
 
@@ -141,12 +142,8 @@ system.runInterval(()=>{
     
     if(typeof(distance) === "number") {
         length = distance / 2.0;
-        const sb = world.scoreboard.getObjective("border");
-        sb?.getScores().forEach((score) => {
-            sb.removeParticipant(score.participant)
-        })
-        sb?.setScore(distance?.toString(), -1);
     }
+    
     const center = world.getDynamicProperty("worldborderCenter");
 
     if(typeof(center) !== "object") return;
