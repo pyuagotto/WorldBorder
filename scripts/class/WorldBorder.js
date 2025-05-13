@@ -5,6 +5,11 @@ import { ModalFormData } from "@minecraft/server-ui";
 import { setBorderStatus } from "../index.js";
 import config from "../config.js";
 
+/**
+ * @type {number | undefined}
+ */
+let intervalId;
+
 export class WorldBorder {
     /**
      * @param {CustomCommandOrigin} origin
@@ -90,6 +95,12 @@ export class WorldBorder {
                 return { status: CustomCommandStatus.Failure, message: `ワールドボーダーの幅を1ブロックより狭くすることはできません` };
             }
 
+            if(intervalId){
+                system.clearRun(intervalId);
+                setBorderStatus(0);
+                intervalId = undefined;
+            }
+
             world.setDynamicProperty("worldborderDistance", newDistance);
             return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${newDistance}ブロックに設定しました` };
         }
@@ -105,7 +116,12 @@ export class WorldBorder {
         const num = Math.abs(newDistance - nowDistance) / tick;
         const direction = newDistance > nowDistance ? 1 : -1;
 
-        const id = system.runInterval(() => {
+        if(intervalId){
+            system.clearRun(intervalId);
+            setBorderStatus(0);
+        }
+
+        intervalId = system.runInterval(() => {
             if (tick >= 0) {
                 const d = world.getDynamicProperty("worldborderDistance");
                 if (typeof d === "number") {
@@ -116,7 +132,7 @@ export class WorldBorder {
             } else {
                 world.setDynamicProperty("worldborderDistance", newDistance);
                 setBorderStatus(0);
-                system.clearRun(id);
+                if(intervalId) system.clearRun(intervalId);
             }
         }, 1);
 
