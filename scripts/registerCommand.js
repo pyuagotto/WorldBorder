@@ -60,7 +60,7 @@ system.beforeEvents.startup.subscribe((ev) => {
         "ワールドボーダー外のダメージを設定します",
         [
             { name: "wb:[amount|buffer]", type: CustomCommandParamType.Enum },
-            { name: "number", type: CustomCommandParamType.Integer },
+            { name: "number", type: CustomCommandParamType.Float },
         ],
         [],
         WorldBorder.damage

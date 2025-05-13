@@ -1,9 +1,9 @@
 //@ts-check
-import { world, system } from '@minecraft/server';
+import { world, system, BlockVolume } from '@minecraft/server';
 import "./registerCommand.js";
 import config from "./config.js";
-import { WorldBorderInfo } from './class/WorldBorderInfo.js';
-
+import { ParticleInfo } from './class/ParticleInfo.js';
+import toJson from './toJson.js';
 
 /**
  * @type {1 | 0 | -1}
@@ -23,6 +23,28 @@ export const setBorderStatus = function(status){
     }
 
     return result;
+};
+
+// プレイヤーの位置とボーダーの境界からの距離を計算
+/**
+ * 
+ * @param {import('@minecraft/server').Vector3} playerLocation 
+ * @param {BlockVolume} blockVolume
+ * @returns {number}
+ */
+const calculateDistanceFromBorder = function(playerLocation, blockVolume) {
+    const min = blockVolume.getMin();
+    const max = blockVolume.getMax();
+
+    const distanceX1 = Math.abs(min.x - playerLocation.x);
+    const distanceX2 = Math.abs(max.x - playerLocation.x);
+    const distanceZ1 = Math.abs(min.z - playerLocation.z);
+    const distanceZ2 = Math.abs(max.z - playerLocation.z);
+
+    const closestX = Math.min(distanceX1, distanceX2);
+    const closestZ = Math.min(distanceZ1, distanceZ2);
+
+    return Math.min(closestX, closestZ);
 };
 
 world.afterEvents.worldLoad.subscribe(() => {
@@ -74,9 +96,11 @@ system.runInterval(() => {
     const overworld = world.getDimension("overworld");
 
     // プレイヤーリストを取得
-    const borderVolume = { x: borderLength * 2, y: 300, z: borderLength * 2 };
-    const bufferVolume = { x: bufferLength * 2, y: 300, z: bufferLength * 2 };
+    const borderVolume = { x: borderLength * 2, y: 400, z: borderLength * 2 };
+    const bufferVolume = { x: bufferLength * 2, y: 400, z: bufferLength * 2 };
 
+    const blockVolume = new BlockVolume({ x: center.x - bufferLength, y: -104, z: center.z - bufferLength }, { x: center.x + bufferLength, y: 400, z: center.z + bufferLength });
+    
     for (const player of overworld.getPlayers({ location: { x: center.x - borderLength, y: -104, z: center.z - borderLength }, volume: borderVolume })) {
         insideBorderPlayerList.push(player);
     }
@@ -94,13 +118,13 @@ system.runInterval(() => {
             player.runCommand('/fog @s push "minecraft:fog_crimson_forest" border');
         }
 
-        const magnification = Math.sqrt(Math.pow(center.x - player.location.x, 2) + Math.pow(center.z - player.location.z, 2)) - bufferLength;
-
         // バッファ外のダメージ処理
         if (!insideBufferPlayerList.includes(player)) {
             const amount = world.getDynamicProperty("worldborderDamageAmount");
             if (typeof amount === "number" && typeof center === "object") {
-                player.applyDamage(amount * magnification / 5);
+                const damage = amount * calculateDistanceFromBorder(player.location, blockVolume);
+                console.warn(damage)
+                player.applyDamage(damage);
             }
         }
     }
@@ -109,8 +133,8 @@ system.runInterval(() => {
 let i = 0;
 //パーティクルの表示
 system.runInterval(()=>{
-    const particleId = WorldBorderInfo.getParticleId(borderStatus);
-    const particleHeight = WorldBorderInfo.getParticleHeight();
+    const particleId = ParticleInfo.getParticleId(borderStatus);
+    const particleHeight = ParticleInfo.getParticleHeight();
 
     let distance = world.getDynamicProperty("worldborderDistance");
     let length = 0;
@@ -139,7 +163,7 @@ system.runInterval(()=>{
     ];
 
     // パーティクル量の計算
-    const particleQuantity = WorldBorderInfo.calculateParticleQuantity(length);
+    const particleQuantity = ParticleInfo.calculateParticleQuantity(length);
 
     if (i < length / 2 + particleQuantity) {
         for (let y = 0; y < particleHeight; y += 3) {

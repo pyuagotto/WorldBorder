@@ -2,7 +2,7 @@
 import { world } from "@minecraft/server";
 import config from "../config.js";
 
-export class WorldBorderInfo {
+export class ParticleInfo {
     /**
      * @param {-1 | 0 | 1 } borderStatus
      * @returns {string | undefined}

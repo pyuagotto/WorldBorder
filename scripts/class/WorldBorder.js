@@ -31,7 +31,7 @@ export class WorldBorder {
      */
     static center(origin, location){
         world.setDynamicProperty("worldborderCenter", location);
-        return { status: CustomCommandStatus.Success, message: `ワールドボーダーの中心を${Math.floor(location.x * 100) / 100},${Math.floor(location.y * 100) / 100},${Math.floor(location.z * 100) / 100}に設定しました` };
+        return { status: CustomCommandStatus.Success, message: `ワールドボーダーの中心を${Math.round(location.x * 100) / 100},${Math.round(location.y * 100) / 100},${Math.round(location.z * 100) / 100}に設定しました` };
     }
 
     /**
@@ -41,16 +41,21 @@ export class WorldBorder {
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
     static damage(origin, param, number){
-        switch(param){
-            case "amount": {
-                world.setDynamicProperty("worldborderDamageAmount", number);
-                return { status: CustomCommandStatus.Success, message: `ワールドボーダー外のダメージを${number}ダメージ毎秒に設定しました` };
-            }
+        if(number >= 0){
+            number = Math.round(number * 100) / 100;
+            switch(param){
+                case "amount": {
+                    world.setDynamicProperty("worldborderDamageAmount", number);
+                    return { status: CustomCommandStatus.Success, message: `ワールドボーダー外のダメージを${number}ダメージ毎秒に設定しました` };
+                }
 
-            case "buffer": {
-                world.setDynamicProperty("worldborderDamageBuffer", number);
-                return { status: CustomCommandStatus.Success, message: `ワールドボーダー外の安全圏を${number}ブロックに設定しました` };
+                case "buffer": {
+                    world.setDynamicProperty("worldborderDamageBuffer", number);
+                    return { status: CustomCommandStatus.Success, message: `ワールドボーダー外の安全圏を${number}ブロックに設定しました` };
+                }
             }
+        }else{
+            return { status: CustomCommandStatus.Failure, message: `この浮動小数点数は0.0以上でなくてはならないため${number}は適しません` };
         }
     }
 
@@ -73,7 +78,7 @@ export class WorldBorder {
      */
     static set(origin, newDistance, time) {
         const nowDistance = world.getDynamicProperty("worldborderDistance");
-        newDistance = Math.floor(newDistance * 10) / 10;
+        newDistance = Math.round(newDistance * 10) / 10;
 
         if (nowDistance === newDistance) {
             return { status: CustomCommandStatus.Failure, message: `ワールドボーダーは既にその大きさのため、変更されませんでした` };
@@ -90,7 +95,7 @@ export class WorldBorder {
         }
 
         if (time < 0) {
-            return { status: CustomCommandStatus.Failure, message: `時間は0以上であるなくてはならないため${time}は適しません` };
+            return { status: CustomCommandStatus.Failure, message: `この整数は0以上でなくてはならないため${time}は適しません` };
         }
 
         // 引数が2つの場合
