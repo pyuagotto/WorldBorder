@@ -64,6 +64,7 @@ world.afterEvents.worldLoad.subscribe(() => {
     }
 });
 
+//ダメージの処理
 system.runInterval(() => {
     const insideBorderPlayerList = [];
     const insideBufferPlayerList = [];
@@ -115,6 +116,7 @@ system.runInterval(() => {
     }
 }, 10);
 
+//パーティクルの表示
 let i = 0;
 system.runInterval(()=>{
     const particleId = ParticleInfo.getParticleId(borderStatus);
