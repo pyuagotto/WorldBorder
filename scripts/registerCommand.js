@@ -1,7 +1,7 @@
 
 //@ts-check
-import { system, CustomCommandParamType, CommandPermissionLevel, CustomCommandOrigin, CustomCommandStatus } from "@minecraft/server";
-import { WorldBorder } from "./worldBorder.js";
+import { system, CustomCommandParamType, CommandPermissionLevel, CustomCommandOrigin, CustomCommandStatus, World } from "@minecraft/server";
+import { WorldBorder } from "./class/WorldBorder.js";
 
 system.beforeEvents.startup.subscribe((ev) => {
     /**
@@ -33,8 +33,6 @@ system.beforeEvents.startup.subscribe((ev) => {
         ]
     )
 
-    const worldBorder = new WorldBorder();
-
     registerCommand(
         "wb:worldborder_add",
         "ワールドボーダーの幅を追加します",
@@ -44,7 +42,7 @@ system.beforeEvents.startup.subscribe((ev) => {
         [
             { name: "time", type: CustomCommandParamType.Integer },
         ],
-        worldBorder.add.bind(worldBorder)
+        WorldBorder.add.bind(WorldBorder)
     );
 
     registerCommand(
@@ -54,7 +52,7 @@ system.beforeEvents.startup.subscribe((ev) => {
             { name: "position", type: CustomCommandParamType.Location },
         ],
         [],
-        worldBorder.center
+        WorldBorder.center
     );
 
     registerCommand(
@@ -65,7 +63,7 @@ system.beforeEvents.startup.subscribe((ev) => {
             { name: "number", type: CustomCommandParamType.Integer },
         ],
         [],
-        worldBorder.damage
+        WorldBorder.damage
     );
 
     registerCommand(
@@ -73,7 +71,7 @@ system.beforeEvents.startup.subscribe((ev) => {
         "現在のワールドボーダーの幅を取得します",
         [],
         [],
-        worldBorder.get
+        WorldBorder.get
     );
 
     registerCommand(
@@ -85,7 +83,7 @@ system.beforeEvents.startup.subscribe((ev) => {
         [
             { name: "time", type: CustomCommandParamType.Integer },
         ],
-        worldBorder.set
+        WorldBorder.set
     );
 
     registerCommand(
@@ -93,6 +91,6 @@ system.beforeEvents.startup.subscribe((ev) => {
         "ワールドボーダーの設定を取得します",
         [],
         [],
-        worldBorder.setting
+        WorldBorder.setting
     );
 });

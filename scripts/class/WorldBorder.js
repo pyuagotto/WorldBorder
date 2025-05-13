@@ -2,8 +2,8 @@
 
 import { CustomCommandOrigin, CustomCommandStatus, Player, system, world } from "@minecraft/server";
 import { ModalFormData } from "@minecraft/server-ui";
-import { setBorderStatus } from "./index.js";
-import config from "./config.js";
+import { setBorderStatus } from "../index.js";
+import config from "../config.js";
 
 export class WorldBorder {
     /**
@@ -12,7 +12,7 @@ export class WorldBorder {
      * @param {number} time 
      * @returns {{ status: CustomCommandStatus, message: string } | undefined}
      */
-    add(origin, addDistance, time) {
+    static add(origin, addDistance, time) {
         
         const nowDistance = world.getDynamicProperty("worldborderDistance");
 
@@ -29,7 +29,7 @@ export class WorldBorder {
      * @param {import("@minecraft/server").Vector3} location 
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
-    center(origin, location){
+    static center(origin, location){
         world.setDynamicProperty("worldborderCenter", location);
         return { status: CustomCommandStatus.Success, message: `ワールドボーダーの中心を${Math.floor(location.x * 100) / 100},${Math.floor(location.y * 100) / 100},${Math.floor(location.z * 100) / 100}に設定しました` };
     }
@@ -40,7 +40,7 @@ export class WorldBorder {
      * @param {number} number 
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
-    damage(origin, param, number){
+    static damage(origin, param, number){
         switch(param){
             case "amount": {
                 world.setDynamicProperty("worldborderDamageAmount", number);
@@ -58,7 +58,7 @@ export class WorldBorder {
      * @param {CustomCommandOrigin} origin
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
-    get(origin){
+    static get(origin){
         let distance = world.getDynamicProperty("worldborderDistance");
         
         if(typeof(distance) === "number") distance = Math.round(distance);
@@ -71,7 +71,7 @@ export class WorldBorder {
      * @param {number} time 
      * @returns {{ status: CustomCommandStatus, message: string } | undefined}
      */
-    set(origin, newDistance, time) {
+    static set(origin, newDistance, time) {
         const nowDistance = world.getDynamicProperty("worldborderDistance");
         newDistance = Math.floor(newDistance * 10) / 10;
 
@@ -126,16 +126,18 @@ export class WorldBorder {
      * @param {CustomCommandOrigin} origin
      * @returns {{ status: CustomCommandStatus, message?: string } | undefined}
      */
-    setting(origin){
+    static setting(origin){
         if(origin.sourceEntity instanceof Player){
             if(config.config) return { status: CustomCommandStatus.Failure, message: "config.jsからconfigをfalseにしてください" };
+
             const player = origin.sourceEntity;
             const baseParticleId = world.getDynamicProperty("baseParticleId");
             const expandParticleId = world.getDynamicProperty("expandParticleId");
             const reductionParticleId = world.getDynamicProperty("reductionParticleId");
             const particleQuantity = world.getDynamicProperty("particleQuantity");
+            const particleHeight = world.getDynamicProperty("particleHeight");
 
-            if(typeof(baseParticleId) !== "string" || typeof(expandParticleId) !== "string" || typeof(reductionParticleId) !== "string" || typeof(particleQuantity) !== "number") return undefined;
+            if(typeof(baseParticleId) !== "string" || typeof(expandParticleId) !== "string" || typeof(reductionParticleId) !== "string" || typeof(particleQuantity) !== "number" || typeof(particleHeight) !== "number") return undefined;
 
             const settingForm = new ModalFormData();
             settingForm.title("ワールドボーダーの設定");
@@ -143,6 +145,7 @@ export class WorldBorder {
             settingForm.textField("\nexpandParticleId\n", "namespace:name", { defaultValue : expandParticleId });
             settingForm.textField("\nreductionParticleId\n", "namespace:name", { defaultValue : reductionParticleId });
             settingForm.dropdown("\nparticleQuantity\n", ["few", "many"], { defaultValueIndex: particleQuantity, tooltip: "パーティクルの表示量を増やすと、処理が重くなる可能性があります" });
+            settingForm.slider("\nparticleHeight", 15, 120, { defaultValue: particleHeight, valueStep: 3 });
 
             system.run(()=>{
                 settingForm.show(player).then((response) => {
@@ -151,20 +154,22 @@ export class WorldBorder {
                             typeof response.formValues[0] === "string" &&
                             typeof response.formValues[1] === "string" &&
                             typeof response.formValues[2] === "string" &&
-                            typeof response.formValues[3] === "number"
+                            typeof response.formValues[3] === "number" && 
+                            typeof response.formValues[4] === "number"
                         ) {
                             world.setDynamicProperties({
                                 "baseParticleId": response.formValues[0],
                                 "expandParticleId": response.formValues[1],
                                 "reductionParticleId": response.formValues[2],
-                                "particleQuantity": response.formValues[3]
+                                "particleQuantity": response.formValues[3],
+                                "particleHeight": response.formValues[4],
                             });
-                        } else {
-                            console.warn("Invalid input: One or more values are not of type string.");
-                        }
+
+                            player.sendMessage(`§aワールドボーダーの設定を変更しました§r`);
+                        } 
                     }
-                })
-            })
+                });
+            });
             
 
             return { status: CustomCommandStatus.Success };

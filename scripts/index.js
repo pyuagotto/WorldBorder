@@ -2,16 +2,16 @@
 import { world, system } from '@minecraft/server';
 import "./registerCommand.js";
 import config from "./config.js";
+import { WorldBorderInfo } from './class/WorldBorderInfo.js';
+
 
 /**
- * @typedef {import("@minecraft/server").Vector3} Vector3
+ * @type {1 | 0 | -1}
  */
-
 let borderStatus = 0;
 
 /**
- * 
- * @param {number} status 
+ * @param {1 | 0 | -1} status 
  * @returns {boolean}
  */
 export const setBorderStatus = function(status){
@@ -24,7 +24,6 @@ export const setBorderStatus = function(status){
 
     return result;
 };
-
 
 world.afterEvents.worldLoad.subscribe(() => {
     const center = world.getDynamicProperty("worldborderCenter");
@@ -40,10 +39,12 @@ world.afterEvents.worldLoad.subscribe(() => {
     const expandParticleId = world.getDynamicProperty("expandParticleId");
     const reductionParticleId = world.getDynamicProperty("reductionParticleId");
     const particleQuantity = world.getDynamicProperty("particleQuantity");
+    const particleHeight = world.getDynamicProperty("particleHeight");
 
     if(!baseParticleId) world.setDynamicProperty("baseParticleId", config.particleId.baseParticleId);
     if(!expandParticleId) world.setDynamicProperty("expandParticleId", config.particleId.expandParticleId);
     if(!reductionParticleId) world.setDynamicProperty("reductionParticleId", config.particleId.reductionParticleId);
+    if(!particleHeight) world.setDynamicProperty("particleHeight", config.particleHeight);
 
     if(!particleQuantity){
         switch(config.particleQuantity){
@@ -68,23 +69,22 @@ system.runInterval(() => {
     const bufferLength = typeof distance === "number" && typeof buffer === "number" ? (distance + buffer) / 2 : 0;
 
     const center = world.getDynamicProperty("worldborderCenter");
+    if (typeof center !== "object") return;
 
-    if (typeof center === "object") {
-        const overworld = world.getDimension("overworld");
+    const overworld = world.getDimension("overworld");
 
-        // プレイヤーリストを取得
-        const borderVolume = { x: borderLength * 2, y: 300, z: borderLength * 2 };
-        const bufferVolume = { x: bufferLength * 2, y: 300, z: bufferLength * 2 };
+    // プレイヤーリストを取得
+    const borderVolume = { x: borderLength * 2, y: 300, z: borderLength * 2 };
+    const bufferVolume = { x: bufferLength * 2, y: 300, z: bufferLength * 2 };
 
-        
-        for (const player of overworld.getPlayers({ location: { x: center.x - borderLength, y: center.y, z: center.z - borderLength }, volume: borderVolume })) {
-            insideBorderPlayerList.push(player);
-        }
-
-        for (const player of overworld.getPlayers({ location: { x: center.x - bufferLength, y: center.y, z: center.z - bufferLength }, volume: bufferVolume })) {
-            insideBufferPlayerList.push(player);
-        }
+    for (const player of overworld.getPlayers({ location: { x: center.x - borderLength, y: -104, z: center.z - borderLength }, volume: borderVolume })) {
+        insideBorderPlayerList.push(player);
     }
+
+    for (const player of overworld.getPlayers({ location: { x: center.x - bufferLength, y: -104, z: center.z - bufferLength }, volume: bufferVolume })) {
+        insideBufferPlayerList.push(player);
+    }
+
 
     for (const player of world.getPlayers()) {
         // ボーダー内外の処理
@@ -94,11 +94,13 @@ system.runInterval(() => {
             player.runCommand('/fog @s push "minecraft:fog_crimson_forest" border');
         }
 
+        const magnification = Math.sqrt(Math.pow(center.x - player.location.x, 2) + Math.pow(center.z - player.location.z, 2)) - bufferLength;
+
         // バッファ外のダメージ処理
         if (!insideBufferPlayerList.includes(player)) {
             const amount = world.getDynamicProperty("worldborderDamageAmount");
             if (typeof amount === "number" && typeof center === "object") {
-                player.applyDamage(amount);
+                player.applyDamage(amount * magnification / 5);
             }
         }
     }
@@ -107,23 +109,9 @@ system.runInterval(() => {
 let i = 0;
 //パーティクルの表示
 system.runInterval(()=>{
-    
-    let particleId;
+    const particleId = WorldBorderInfo.getParticleId(borderStatus);
+    const particleHeight = WorldBorderInfo.getParticleHeight();
 
-    switch(borderStatus){
-        case -1:
-            particleId = config.particleId.reductionParticleId;
-            break;
-
-        case 0:
-            particleId = config.particleId.baseParticleId;
-            break;
-
-        case 1:
-            particleId = config.particleId.expandParticleId;
-            break;
-    }
-    
     let distance = world.getDynamicProperty("worldborderDistance");
     let length = 0;
     
@@ -150,16 +138,20 @@ system.runInterval(()=>{
         { x: center.x - length + i, z: center.z + length }, { x: center.x - length, z: center.z + length - i }
     ];
 
-    if (i < length / 2) {
-        for (let y = 0; y < 15; y += 3) {
+    // パーティクル量の計算
+    const particleQuantity = WorldBorderInfo.calculateParticleQuantity(length);
+
+    if (i < length / 2 + particleQuantity) {
+        for (let y = 0; y < particleHeight; y += 3) {
             for (const point of points) {
-                world.getDimension("overworld").runCommand(`/particle ${particleId} ${point.x} ${center.y + y} ${point.z}`);
+                world.getDimension("overworld").runCommand(
+                    `/particle ${particleId} ${point.x} ${center.y + y} ${point.z}`
+                );
             }
         }
-        
-        i += Math.sqrt(length);
+
+        i += particleQuantity;
     } else {
         i = 0;
-        console.warn("往復")
     }
 },1);
