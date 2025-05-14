@@ -37,11 +37,23 @@ export const setBorderStatus = function(status) {
 const calculateDistanceFromBorder = function(playerLocation, blockVolume) {
     const min = blockVolume.getMin();
     const max = blockVolume.getMax();
+    let distance = 0;
 
-    const closestX = Math.min(Math.abs(min.x - playerLocation.x), Math.abs(max.x - playerLocation.x));
-    const closestZ = Math.min(Math.abs(min.z - playerLocation.z), Math.abs(max.z - playerLocation.z));
+    if(playerLocation.x > min.x && playerLocation.x < max.x) {
+        distance = Math.min(Math.abs(min.z - playerLocation.z), Math.abs(max.z - playerLocation.z));
+    }
 
-    return Math.min(closestX, closestZ);
+    else if(playerLocation.z > min.z && playerLocation.z < max.z) {
+        distance = Math.min(Math.abs(min.x - playerLocation.x), Math.abs(max.x - playerLocation.x));
+    }
+
+    else {
+        const closestX = Math.min(Math.abs(min.x - playerLocation.x), Math.abs(max.x - playerLocation.x));
+        const closestZ = Math.min(Math.abs(min.z - playerLocation.z), Math.abs(max.z - playerLocation.z));
+        distance = Math.sqrt(closestX ** 2 + closestZ ** 2);
+    }
+
+    return distance;
 };
 
 world.afterEvents.worldLoad.subscribe(() => {

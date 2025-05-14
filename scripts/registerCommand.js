@@ -88,7 +88,7 @@ system.beforeEvents.startup.subscribe((ev) => {
 
     registerCommand(
         "wb:setting",
-        "ワールドボーダーの設定を取得します",
+        "ワールドボーダーの設定フォームを開きます",
         [],
         [],
         WorldBorder.setting
