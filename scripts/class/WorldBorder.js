@@ -50,11 +50,21 @@ export class WorldBorder {
             number = Math.round(number * 100) / 100;
             switch(param){
                 case "amount": {
+                    const nowDamageAmount = world.getDynamicProperty("worldborderDamageAmount");
+                    if (nowDamageAmount === number) {
+                        return { status: CustomCommandStatus.Failure, message: `ワールドボーダーのダメージは既にその値のため、変更されませんでした` };
+                    }
+
                     world.setDynamicProperty("worldborderDamageAmount", number);
                     return { status: CustomCommandStatus.Success, message: `ワールドボーダー外のダメージを${number}ダメージ毎秒に設定しました` };
                 }
 
                 case "buffer": {
+                    const nowDamageBuffer = world.getDynamicProperty("worldborderDamageBuffer");
+                    if (nowDamageBuffer === number) {
+                        return { status: CustomCommandStatus.Failure, message: `ワールドボーダーの安全県の距離は既にその距離のため、変更されませんでした` };
+                    }
+
                     world.setDynamicProperty("worldborderDamageBuffer", number);
                     return { status: CustomCommandStatus.Success, message: `ワールドボーダー外の安全圏を${number}ブロックに設定しました` };
                 }
