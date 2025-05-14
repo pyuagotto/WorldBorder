@@ -5,6 +5,6 @@ export default ({
         expandParticleId: "minecraft:trial_omen_emitter",
         reductionParticleId: "minecraft:raid_omen_emitter",
     },
-    particleQuantity: "few", // "few" |or "many"
+    particleQuantity: "few", // "few" or "many"
     particleHeight: 15,
 });
