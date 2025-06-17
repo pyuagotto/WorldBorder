@@ -1,9 +1,9 @@
 {
     "format_version": 2,
     "header": {
-        "name": "[1.21.80]World Border Addon",
+        "name": "[1.21.90]World Border Addon",
         "description": "",
-        "uuid": "d3f8a7c4-9b2e-4f6a-8c3d-2e7b1a9f8b6d",
+        "uuid": "d3f8a7c4-0b2e-4f6a-0c3d-2e7b1a9f8b6d",
         "version": [
             0,
             1,
@@ -19,7 +19,7 @@
         {
             "description": "GameTest module",
             "type": "script",
-            "uuid": "e4a1c2d8-7f3b-4a9e-9c2d-5f8b7a1d6e3f",
+            "uuid": "e4a1c2d8-7f3b-4a9e-9c2d-0f8b0a1d6e3f",
             "version": [
                 0,
                 1,
@@ -31,11 +31,11 @@
     "dependencies": [
         {
             "module_name": "@minecraft/server",
-            "version": "2.0.0-beta"
+            "version": "2.1.0-beta"
         },
         {
             "module_name": "@minecraft/server-ui",
-            "version": "2.0.0-beta"
+            "version": "2.1.0-beta"
         }
     ]
 }
