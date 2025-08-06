@@ -188,13 +188,11 @@ export class WorldBorder {
                             typeof response.formValues[3] === "number" && 
                             typeof response.formValues[4] === "number"
                         ) {
-                            world.setDynamicProperties({
-                                "baseParticleId": response.formValues[0],
-                                "expandParticleId": response.formValues[1],
-                                "reductionParticleId": response.formValues[2],
-                                "particleQuantity": response.formValues[3],
-                                "particleHeight": response.formValues[4],
-                            });
+                            world.setDynamicProperty("baseParticleId", response.formValues[0]);
+                            world.setDynamicProperty("expandParticleId", response.formValues[1]);
+                            world.setDynamicProperty("reductionParticleId", response.formValues[2]);
+                            world.setDynamicProperty("particleQuantity", response.formValues[3]);
+                            world.setDynamicProperty("particleHeight", response.formValues[4]);
 
                             player.sendMessage(`§aワールドボーダーの設定を変更しました§r`);
                         } 
