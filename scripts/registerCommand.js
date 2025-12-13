@@ -105,7 +105,9 @@ system.beforeEvents.startup.subscribe((ev) => {
         "wb:worldborder_randomcenter",
         "範囲内からランダムで中心を設定します",
         [],
-        [],
+        [
+            { name: "wb:dimension", type: CustomCommandParamType.Enum },
+        ],
         WorldBorder.randomcenter.bind(WorldBorder)
     );
 

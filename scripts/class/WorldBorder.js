@@ -133,26 +133,6 @@ export class WorldBorder {
     }
 
     /**
-     * 始点と終点の範囲内でランダムな座標を1つ返す
-     * @param {import('@minecraft/server').Vector3} center - 中心点
-     * @param {import('@minecraft/server').Vector3} from - 始点
-     * @param {import('@minecraft/server').Vector3} to - 終点
-     * @returns {import('@minecraft/server').Vector3} ランダムな座標
-     */
-    static #getRandomLocation = function(center, from, to) {
-        const minX = Math.min(from.x, to.x);
-        const maxX = Math.max(from.x, to.x);
-        const minZ = Math.min(from.z, to.z);
-        const maxZ = Math.max(from.z, to.z);
-
-        return {
-            x: Math.random() * (maxX - minX) + minX,
-            y: center.y,
-            z: Math.random() * (maxZ - minZ) + minZ
-        };
-    };
-
-    /**
      * @param {CustomCommandOrigin} origin
      * @param {DimensionId} dimension
      * @returns {{ status: CustomCommandStatus, message?: string } | undefined}
@@ -171,9 +151,9 @@ export class WorldBorder {
             { x: center.x + borderLength, y: 400, z: center.z + borderLength }
         );
 
-        const location = this.#getRandomLocation(center, blockVolume.from, blockVolume.to);
+        const location = Utils.getRandomLocation(center, blockVolume.from, blockVolume.to);
         
-        return this.center(origin, location);
+        return this.center(origin, location, dimension);
     }
 
     /**

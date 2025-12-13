@@ -272,4 +272,24 @@ export class Utils {
 
         return "?";
     }
+
+    /**
+     * 始点と終点の範囲内でランダムな座標を1つ返す
+     * @param {import('@minecraft/server').Vector3} center - 中心点
+     * @param {import('@minecraft/server').Vector3} from - 始点
+     * @param {import('@minecraft/server').Vector3} to - 終点
+     * @returns {import('@minecraft/server').Vector3} ランダムな座標
+     */
+    static getRandomLocation = function(center, from, to) {
+        const minX = Math.min(from.x, to.x);
+        const maxX = Math.max(from.x, to.x);
+        const minZ = Math.min(from.z, to.z);
+        const maxZ = Math.max(from.z, to.z);
+
+        return {
+            x: Math.random() * (maxX - minX) + minX,
+            y: center.y,
+            z: Math.random() * (maxZ - minZ) + minZ
+        };
+    };
 }
