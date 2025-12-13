@@ -202,13 +202,7 @@ export class WorldBorder {
                                 particleQuantity: response.formValues[3],
                                 particleHeight: response.formValues[4],
                                 showActionbar: response.formValues[5],
-                            })
-                            /*world.setDynamicProperty("baseParticleId", response.formValues[0]);
-                            world.setDynamicProperty("expandParticleId", response.formValues[1]);
-                            world.setDynamicProperty("reductionParticleId", response.formValues[2]);
-                            world.setDynamicProperty("particleQuantity", response.formValues[3]);
-                            world.setDynamicProperty("particleHeight", response.formValues[4]);
-                            world.setDynamicProperty("showActionbar", response.formValues[5]);*/
+                            });
                             player.sendMessage(`§aワールドボーダーの設定を変更しました§r`);
                         } 
                     }

@@ -120,9 +120,8 @@ export class BorderState {
             if (tick >= 0) {
                 this.setTime(dimension, tick);
                 const d = Utils.getDistance(dimension);
-                if (typeof d === "number") {
-                    Utils.setDistance(dimension, d + direction * num);
-                }
+                if (d) Utils.setDistance(dimension, d + direction * num);
+                
                 tick--;
             } else {
                 Utils.setDistance(dimension, newDistance);
