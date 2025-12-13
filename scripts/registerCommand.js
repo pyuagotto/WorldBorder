@@ -1,6 +1,6 @@
 
 //@ts-check
-import { system, CustomCommandParamType, CommandPermissionLevel, CustomCommandOrigin, CustomCommandStatus, World } from "@minecraft/server";
+import { system, CustomCommandParamType, CommandPermissionLevel, CustomCommandOrigin, CustomCommandStatus } from "@minecraft/server";
 import { WorldBorder } from "./class/WorldBorder.js";
 
 system.beforeEvents.startup.subscribe((ev) => {
@@ -33,6 +33,15 @@ system.beforeEvents.startup.subscribe((ev) => {
         ]
     )
 
+    ev.customCommandRegistry.registerEnum(
+        "wb:dimension",
+        [
+            "nether",
+            "overworld",
+            "the_end",
+        ]
+    )
+
     registerCommand(
         "wb:worldborder_add",
         "ワールドボーダーの幅を追加します",
@@ -41,6 +50,7 @@ system.beforeEvents.startup.subscribe((ev) => {
         ],
         [
             { name: "time", type: CustomCommandParamType.Integer },
+            { name: "wb:dimension", type: CustomCommandParamType.Enum },
         ],
         WorldBorder.add.bind(WorldBorder)
     );
@@ -51,7 +61,9 @@ system.beforeEvents.startup.subscribe((ev) => {
         [
             { name: "position", type: CustomCommandParamType.Location },
         ],
-        [],
+        [
+            { name: "wb:dimension", type: CustomCommandParamType.Enum },
+        ],
         WorldBorder.center
     );
 
@@ -70,7 +82,9 @@ system.beforeEvents.startup.subscribe((ev) => {
         "wb:worldborder_get",
         "現在のワールドボーダーの幅を取得します",
         [],
-        [],
+        [
+            { name: "wb:dimension", type: CustomCommandParamType.Enum },
+        ],
         WorldBorder.get
     );
 
@@ -82,8 +96,17 @@ system.beforeEvents.startup.subscribe((ev) => {
         ],
         [
             { name: "time", type: CustomCommandParamType.Integer },
+            { name: "wb:dimension", type: CustomCommandParamType.Enum },
         ],
         WorldBorder.set
+    );
+
+    registerCommand(
+        "wb:worldborder_randomcenter",
+        "範囲内からランダムで中心を設定します",
+        [],
+        [],
+        WorldBorder.randomcenter.bind(WorldBorder)
     );
 
     registerCommand(

@@ -1,9 +1,14 @@
 //@ts-check
 
-import { CustomCommandOrigin, CustomCommandStatus, Player, system, world } from "@minecraft/server";
+import { BlockVolume, CustomCommandOrigin, CustomCommandStatus, Player, system, world } from "@minecraft/server";
 import { ModalFormData } from "@minecraft/server-ui";
-import { setBorderStatus } from "../index.js";
 import config from "../config.js";
+import { Utils } from "./Utils.js";
+import { BorderState } from "./BorderState.js";
+
+/**
+ * @typedef {"overworld" | "nether" | "the_end"} DimensionId
+ */
 
 /**
  * @type {number | undefined}
@@ -15,15 +20,15 @@ export class WorldBorder {
      * @param {CustomCommandOrigin} origin
      * @param {number} addDistance 
      * @param {number} time 
+     * @param {DimensionId} dimension
      * @returns {{ status: CustomCommandStatus, message: string } | undefined}
      */
-    static add(origin, addDistance, time) {
-        
-        const nowDistance = world.getDynamicProperty("worldborderDistance");
+    static add(origin, addDistance, time, dimension = Utils.getOriginDimensionId(origin)){
+        let nowDistance = Utils.getDistance(dimension);
 
         if(typeof(nowDistance) === "number") {
             const newDistance = nowDistance + addDistance;
-            return this.set(origin, newDistance, time);
+            return this.set(origin, newDistance, time, dimension);
         }
         
         return undefined;
@@ -32,10 +37,12 @@ export class WorldBorder {
     /**
      * @param {CustomCommandOrigin} origin
      * @param {import("@minecraft/server").Vector3} location 
+     * @param {DimensionId} dimension
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
-    static center(origin, location){
-        world.setDynamicProperty("worldborderCenter", location);
+    static center(origin, location, dimension = Utils.getOriginDimensionId(origin)){
+        Utils.setCenter(dimension, location);
+
         return { status: CustomCommandStatus.Success, message: `ワールドボーダーの中心を${Math.round(location.x * 100) / 100},${Math.round(location.y * 100) / 100},${Math.round(location.z * 100) / 100}に設定しました` };
     }
 
@@ -76,12 +83,13 @@ export class WorldBorder {
 
     /**
      * @param {CustomCommandOrigin} origin
+     * @param {DimensionId} dimension
      * @returns {{ status: CustomCommandStatus, message: string }}
      */
-    static get(origin){
-        let distance = world.getDynamicProperty("worldborderDistance");
-        
-        if(typeof(distance) === "number") distance = Math.round(distance);
+    static get(origin, dimension = Utils.getOriginDimensionId(origin)){
+        let distance = Utils.getDistance(dimension);
+        if(distance) distance = Math.round(distance);
+
         return { status: CustomCommandStatus.Success, message: `現在のワールドボーダーの幅は${distance}ブロックです` };
     }
 
@@ -89,10 +97,12 @@ export class WorldBorder {
      * @param {CustomCommandOrigin} origin
      * @param {number} newDistance 
      * @param {number} time 
+     * @param {DimensionId} dimension
      * @returns {{ status: CustomCommandStatus, message: string } | undefined}
      */
-    static set(origin, newDistance, time) {
-        const nowDistance = world.getDynamicProperty("worldborderDistance");
+    static set(origin, newDistance, time, dimension = Utils.getOriginDimensionId(origin)) {
+        let nowDistance = Utils.getDistance(dimension);
+
         newDistance = Math.round(newDistance * 10) / 10;
 
         if (nowDistance === newDistance) {
@@ -100,18 +110,13 @@ export class WorldBorder {
         }
 
         if (!time) {
-            // 引数が1つの場合
             if(newDistance < 0){
                 return { status: CustomCommandStatus.Failure, message: `ワールドボーダーの幅を1ブロックより狭くすることはできません` };
             }
 
-            if(intervalId){
-                system.clearRun(intervalId);
-                setBorderStatus(0);
-                intervalId = undefined;
-            }
+            BorderState.stopTransition(dimension);
+            Utils.setDistance(dimension, newDistance);
 
-            world.setDynamicProperty("worldborderDistance", newDistance);
             return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${newDistance}ブロックに設定しました` };
         }
 
@@ -119,38 +124,56 @@ export class WorldBorder {
             return { status: CustomCommandStatus.Failure, message: `この整数は0以上でなくてはならないため${time}は適しません` };
         }
 
-        // 引数が2つの場合
         if (typeof nowDistance !== "number") return undefined;
 
-        let tick = time * 20;
-        const num = Math.abs(newDistance - nowDistance) / tick;
-        const direction = newDistance > nowDistance ? 1 : -1;
+        BorderState.startTransition(dimension, nowDistance, newDistance, time);
 
-        if(intervalId){
-            system.clearRun(intervalId);
-            setBorderStatus(0);
-        }
-
-        intervalId = system.runInterval(() => {
-            if (tick >= 0) {
-                const d = world.getDynamicProperty("worldborderDistance");
-                if (typeof d === "number") {
-                    
-                    world.setDynamicProperty("worldborderDistance", d + direction * num);
-                }
-                tick--;
-            } else {
-                world.setDynamicProperty("worldborderDistance", newDistance);
-                setBorderStatus(0);
-                if(intervalId) system.clearRun(intervalId);
-            }
-        }, 1);
-
-        const action = direction > 0 ? "拡大" : "縮小";
-        const status = direction > 0 ? 1 : -1;
-
-        setBorderStatus(status);
+        const action = newDistance > nowDistance ? "拡大" : "縮小";
         return { status: CustomCommandStatus.Success, message: `ワールドボーダーの幅を${time}秒かけて${newDistance}ブロックに${action}します` };
+    }
+
+    /**
+     * 始点と終点の範囲内でランダムな座標を1つ返す
+     * @param {import('@minecraft/server').Vector3} center - 中心点
+     * @param {import('@minecraft/server').Vector3} from - 始点
+     * @param {import('@minecraft/server').Vector3} to - 終点
+     * @returns {import('@minecraft/server').Vector3} ランダムな座標
+     */
+    static #getRandomLocation = function(center, from, to) {
+        const minX = Math.min(from.x, to.x);
+        const maxX = Math.max(from.x, to.x);
+        const minZ = Math.min(from.z, to.z);
+        const maxZ = Math.max(from.z, to.z);
+
+        return {
+            x: Math.random() * (maxX - minX) + minX,
+            y: center.y,
+            z: Math.random() * (maxZ - minZ) + minZ
+        };
+    };
+
+    /**
+     * @param {CustomCommandOrigin} origin
+     * @param {DimensionId} dimension
+     * @returns {{ status: CustomCommandStatus, message?: string } | undefined}
+     */
+    static randomcenter(origin, dimension = Utils.getOriginDimensionId(origin)){
+        const distance = Utils.getDistance(dimension);
+        const center = Utils.getCenter(dimension);
+        
+        if(!distance) return;
+        if(!center) return;
+    
+        const borderLength = distance / 4;
+
+        const blockVolume = new BlockVolume(
+            { x: center.x - borderLength, y: -104, z: center.z - borderLength },
+            { x: center.x + borderLength, y: 400, z: center.z + borderLength }
+        );
+
+        const location = this.#getRandomLocation(center, blockVolume.from, blockVolume.to);
+        
+        return this.center(origin, location);
     }
 
     /**
@@ -179,6 +202,7 @@ export class WorldBorder {
             settingForm.slider("\nparticleHeight", 15, 120, { defaultValue: particleHeight, valueStep: 3 });
 
             system.run(()=>{
+                //@ts-ignore
                 settingForm.show(player).then((response) => {
                     if(response.formValues){
                         if (
