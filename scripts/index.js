@@ -34,6 +34,7 @@ world.afterEvents.worldLoad.subscribe(() => {
         reductionParticleId: config.particleId.reductionParticleId,
         particleHeight: config.particleHeight,
         particleQuantity: config.particleQuantity === "few" ? 0 : 1,
+        showActionbar: config.showActionbar,
     };
 
     for (const [key, value] of Object.entries(defaultProperties)) {
@@ -125,10 +126,14 @@ system.runInterval(() => {
                             `ボーダーまで: ${toBorder}\n` + 
                             `大きさ: [${Math.floor(distance)}m] ` +
                             `状態: [${status}]`;
-            player.onScreenDisplay.setActionBar(actionbar);
+
+            if(config.config){
+                if(config.showActionbar) player.onScreenDisplay.setActionBar(actionbar);
+            }else{  
+                if(world.getDynamicProperty("showActionbar")) player.onScreenDisplay.setActionBar(actionbar);
+            }
         }
     }
-    
 }, 10);
 
 //パーティクルの表示

@@ -7,4 +7,5 @@ export default ({
     },
     particleQuantity: "few", // "few" or "many"
     particleHeight: 15,
+    showActionbar: true,
 });

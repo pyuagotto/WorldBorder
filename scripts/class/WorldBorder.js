@@ -170,8 +170,9 @@ export class WorldBorder {
             const reductionParticleId = world.getDynamicProperty("reductionParticleId");
             const particleQuantity = world.getDynamicProperty("particleQuantity");
             const particleHeight = world.getDynamicProperty("particleHeight");
+            const showActionbar = world.getDynamicProperty("showActionbar");
 
-            if(typeof(baseParticleId) !== "string" || typeof(expandParticleId) !== "string" || typeof(reductionParticleId) !== "string" || typeof(particleQuantity) !== "number" || typeof(particleHeight) !== "number") return undefined;
+            if(typeof(baseParticleId) !== "string" || typeof(expandParticleId) !== "string" || typeof(reductionParticleId) !== "string" || typeof(particleQuantity) !== "number" || typeof(particleHeight) !== "number" || typeof(showActionbar) !== "boolean") return undefined;
 
             const settingForm = new ModalFormData();
             settingForm.title("ワールドボーダーの設定");
@@ -180,6 +181,7 @@ export class WorldBorder {
             settingForm.textField("\nreductionParticleId\n", "namespace:name", { defaultValue : reductionParticleId });
             settingForm.dropdown("\nparticleQuantity\n", ["few", "many"], { defaultValueIndex: particleQuantity, tooltip: "パーティクルの表示量を増やすと、処理が重くなる可能性があります" });
             settingForm.slider("\nparticleHeight", 15, 120, { defaultValue: particleHeight, valueStep: 3 });
+            settingForm.toggle("showActionbar", { defaultValue: showActionbar });
 
             system.run(()=>{
                 //@ts-ignore
@@ -190,14 +192,23 @@ export class WorldBorder {
                             typeof response.formValues[1] === "string" &&
                             typeof response.formValues[2] === "string" &&
                             typeof response.formValues[3] === "number" && 
-                            typeof response.formValues[4] === "number"
+                            typeof response.formValues[4] === "number" &&
+                            typeof response.formValues[5] === "boolean"
                         ) {
-                            world.setDynamicProperty("baseParticleId", response.formValues[0]);
+                            world.setDynamicProperties({
+                                baseParticleId: response.formValues[0],
+                                expandParticleId: response.formValues[1],
+                                reductionParticleId: response.formValues[2],
+                                particleQuantity: response.formValues[3],
+                                particleHeight: response.formValues[4],
+                                showActionbar: response.formValues[5],
+                            })
+                            /*world.setDynamicProperty("baseParticleId", response.formValues[0]);
                             world.setDynamicProperty("expandParticleId", response.formValues[1]);
                             world.setDynamicProperty("reductionParticleId", response.formValues[2]);
                             world.setDynamicProperty("particleQuantity", response.formValues[3]);
                             world.setDynamicProperty("particleHeight", response.formValues[4]);
-
+                            world.setDynamicProperty("showActionbar", response.formValues[5]);*/
                             player.sendMessage(`§aワールドボーダーの設定を変更しました§r`);
                         } 
                     }
