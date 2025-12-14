@@ -1,5 +1,5 @@
 //@ts-check
-import { world, system, BlockVolume, Player } from '@minecraft/server';
+import { world, system, BlockVolume } from '@minecraft/server';
 import "./registerCommand.js";
 import config from "./config.js";
 import { ParticleInfo } from './class/ParticleInfo.js';

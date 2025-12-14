@@ -1,5 +1,5 @@
 //@ts-check
-import { BlockVolume, CustomCommandOrigin, world, CustomCommandSource, Dimension, Player } from "@minecraft/server";
+import { BlockVolume, CustomCommandOrigin, world, CustomCommandSource, Player } from "@minecraft/server";
 
 /**
  * @typedef {"overworld" | "nether" | "the_end"} DimensionId

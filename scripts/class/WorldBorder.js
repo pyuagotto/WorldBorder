@@ -10,11 +10,6 @@ import { BorderState } from "./BorderState.js";
  * @typedef {"overworld" | "nether" | "the_end"} DimensionId
  */
 
-/**
- * @type {number | undefined}
- */
-let intervalId;
-
 export class WorldBorder {
     /**
      * @param {CustomCommandOrigin} origin
